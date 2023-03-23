@@ -1,0 +1,520 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+@Autonomous
+
+public class StraferChassisAutonomousB33 extends LinearOpMode {
+
+    // todo: write your code here
+    private ElapsedTime runtime = new ElapsedTime();
+    private DcMotor MotorLeftFront = null;
+    private DcMotor MotorLeftRear = null;
+    private DcMotor MotorRightFront = null;
+    private DcMotor MotorRightRear = null;
+    DcMotor ArmZ = null;
+    DcMotor ArmXY = null;
+    DcMotor Ducknado = null;
+    private Servo LeftGrabber = null;
+    private Servo RightGrabber = null;
+
+    //@Override
+    public void runOpMode() {
+        // todo: write your code here
+        //telemetry.setAutoClear(false);
+        telemetry.addData("Status", "Initialized");
+        telemetry.update();
+
+        // Initialize the hardware variables. Note that the strings used here as parameters
+        // to 'get' must correspond to the names assigned during the robot configuration
+        // step (using the FTC Robot Controller app on the phone).
+        MotorRightFront  = hardwareMap.get(DcMotor.class, "MotorRightFront");
+        MotorRightRear  = hardwareMap.get(DcMotor.class, "MotorRightRear");
+        MotorLeftFront  = hardwareMap.get(DcMotor.class, "MotorLeftFront");
+        MotorLeftRear  = hardwareMap.get(DcMotor.class, "MotorLeftRear");
+        ArmZ = hardwareMap.get(DcMotor.class,"ArmZ");
+        ArmXY = hardwareMap.get(DcMotor.class,"ArmXY");
+        Ducknado=hardwareMap.get(DcMotor.class,"Ducknado");
+        LeftGrabber =hardwareMap.servo.get("LeftGrabber");
+        RightGrabber =hardwareMap.servo.get("RightGrabber");
+
+
+//Configure the drive motor for direction of spin
+        MotorRightFront.setDirection(DcMotor.Direction.FORWARD);
+        MotorRightRear.setDirection(DcMotor.Direction.FORWARD);
+        MotorLeftFront.setDirection(DcMotor.Direction.REVERSE);
+        MotorLeftRear.setDirection(DcMotor.Direction.REVERSE);
+        ArmZ.setDirection(DcMotor.Direction.FORWARD);
+        ArmXY.setDirection(DcMotor.Direction.FORWARD);
+        Ducknado.setDirection(DcMotor.Direction.REVERSE);
+
+        MotorRightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        MotorRightRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        MotorLeftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        MotorLeftRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        ArmZ.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+//start of movement
+
+        sleep(100);
+        RocketLaunch("Close", LeftGrabber, RightGrabber);
+        sleep(100);
+        ArmZMove(.6, 1.55, "Up", ArmZ);
+        sleep(100);
+        StrafeMove(0.25,1.7,"Right",MotorLeftFront, MotorLeftRear, MotorRightFront, MotorRightRear);
+        sleep(100);
+        RocketLaunch("Open", LeftGrabber, RightGrabber);
+        sleep(100);
+        StrafeMove(0.25,1.7,"Left",MotorLeftFront, MotorLeftRear, MotorRightFront, MotorRightRear);
+        sleep(100);
+        StraightMove(.5,-4,MotorLeftFront, MotorLeftRear, MotorRightFront, MotorRightRear);
+
+
+
+
+        //End of RunOpMode
+        telemetry.addData("Status", "Completed");
+        telemetry.update();
+    }
+
+    public void StraightMove(double Power, double Distance, DcMotor MotorLeftFront, DcMotor MotorLeftRear, DcMotor MotorRightFront, DcMotor MotorRightRear  ){
+        MotorLeftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        MotorLeftRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        MotorRightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        MotorRightRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        //Set Target Position
+        MotorLeftFront.setTargetPosition(0);
+        MotorLeftRear.setTargetPosition(0);
+        MotorRightFront.setTargetPosition(0);
+        MotorRightRear.setTargetPosition(0);
+
+
+        //Set the Mode to Run to Position
+        MotorLeftFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        MotorLeftRear.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        MotorRightFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        MotorRightRear.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        // Calculate the Number of Encoder Ticks to send to each Motor
+        //Convert Distance (Rotations) to Distance (Encounter Ticks)
+        // The value of 753.2 is based on spec sheet to move one rotation
+        Distance=Distance*753.2;
+        // Round the calculated value from decimal to whole number
+        Distance=Math.round(Distance);
+        // Cast the whole number to an Integer
+        int EncounterTicks = (int)Distance;
+        int leftDriveTarget = 0;
+        int rightDriveTarget = 0;
+        //Set the Power and  Distance for each motor to match
+        MotorLeftFront.setTargetPosition(EncounterTicks);
+        MotorLeftFront.setPower(Power);
+        MotorLeftRear.setTargetPosition(EncounterTicks);
+        MotorLeftRear.setPower(Power);
+        MotorRightFront.setTargetPosition(EncounterTicks);
+        MotorRightFront.setPower(Power);
+        MotorRightRear.setTargetPosition(EncounterTicks);
+        MotorRightRear.setPower(Power);
+        telemetry.addLine("Straight Moving");
+        telemetry.update();
+        leftDriveTarget=EncounterTicks - MotorLeftFront.getCurrentPosition();
+        rightDriveTarget=EncounterTicks - MotorRightFront.getCurrentPosition();
+        Boolean ContinueToDrive = true;
+        telemetry.addLine()
+                .addData("Running Straight", "number (%.2f)",EncounterTicks );
+        telemetry.addLine()
+                .addData("Motors", "left (%.2f), right (%.2f)", leftDriveTarget, rightDriveTarget)
+                .addData("Right Target", rightDriveTarget)
+                .addData("Left Target", leftDriveTarget);
+        telemetry.update();
+        if(Math.abs(rightDriveTarget)<20 || Math.abs(leftDriveTarget)<20){
+            ContinueToDrive=false;
+        }
+        while (MotorLeftFront.isBusy()&& MotorRightFront.isBusy()&& ContinueToDrive) {
+            leftDriveTarget=EncounterTicks - MotorLeftFront.getCurrentPosition();
+            rightDriveTarget=EncounterTicks - MotorRightFront.getCurrentPosition();
+            String Left = Integer.toString(leftDriveTarget);
+            String Right = Integer.toString(rightDriveTarget);
+            telemetry.addLine()
+                    .addData("Running Straight", EncounterTicks)
+                    //.addData("Running Straight", "number (%.2f)",EncounterTicks)
+                    .addData("Right Target", rightDriveTarget)
+                    .addData("Left Target", leftDriveTarget);
+            //telemetry.addData("I am Runnng","Completed");
+            //telemetry.update();
+            //telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftDriveTarget, rightDriveTarget);
+            telemetry.addData("Motors", Left +","+ Right);
+            telemetry.addData("Continue?:", ContinueToDrive);
+            telemetry.addData("Left Busy?:", MotorLeftFront.isBusy());
+            telemetry.addData("Right Busy?:", MotorRightFront.isBusy());
+            //telemetry.addData("Moving");
+            //telemetry.addData("Status", "Distance: " + EncounterTicks);
+            telemetry.update();
+            if(Math.abs(rightDriveTarget)<20 || Math.abs(leftDriveTarget)<20){
+                ContinueToDrive=false;
+            }
+        }}
+    public void StrafeMove(double Power, double Distance, String Direction, DcMotor MotorLeftFront, DcMotor MotorLeftRear, DcMotor MotorRightFront, DcMotor MotorRightRear  ){
+        MotorLeftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        MotorLeftRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        MotorRightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        MotorRightRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        //Set Target Position
+        MotorLeftFront.setTargetPosition(0);
+        MotorLeftRear.setTargetPosition(0);
+        MotorRightFront.setTargetPosition(0);
+        MotorRightRear.setTargetPosition(0);
+
+
+        //Set the Mode to Run to Position
+        MotorLeftFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        MotorLeftRear.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        MotorRightFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        MotorRightRear.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        // Calculate the Number of Encoder Ticks to send to each Motor
+        //Convert Distance (Rotations) to Distance (Encounter Ticks)
+        // The value of 753.2 is based on spec sheet to move one rotation
+        Distance=Distance*753.2;
+        // Round the calculated value from decimal to whole number
+        Distance=Math.round(Distance);
+        // Cast the whole number to an Integer
+        int EncounterTicks = (int)Distance;
+        int leftDriveTarget = 0;
+        int rightDriveTarget = 0;
+        //Set the Power and  Distance for each motor to match
+
+        if(Direction == "Left"){
+            MotorLeftFront.setPower(-Power);
+            MotorLeftFront.setTargetPosition(-EncounterTicks);
+            MotorLeftRear.setPower(Power);
+            MotorLeftRear.setTargetPosition(EncounterTicks);
+            MotorRightFront.setPower(Power);
+            MotorRightFront.setTargetPosition(EncounterTicks);
+            MotorRightRear.setPower(-Power);
+            MotorRightRear.setTargetPosition(-EncounterTicks);
+        }
+        if (Direction == "Right"){
+            MotorLeftFront.setPower(Power);
+            MotorLeftFront.setTargetPosition(EncounterTicks);
+            MotorLeftRear.setPower(-Power);
+            MotorLeftRear.setTargetPosition(-EncounterTicks);
+            MotorRightFront.setPower(-Power);
+            MotorRightFront.setTargetPosition(-EncounterTicks);
+            MotorRightRear.setPower(Power);
+            MotorRightRear.setTargetPosition(EncounterTicks);
+        }
+        telemetry.addLine("Straight Moving");
+        telemetry.update();
+        leftDriveTarget=EncounterTicks - MotorLeftFront.getCurrentPosition();
+        rightDriveTarget=EncounterTicks - MotorRightFront.getCurrentPosition();
+        Boolean ContinueToDrive = true;
+        telemetry.addLine()
+                .addData("Running Strafe", "number (%.2f)",EncounterTicks );
+        telemetry.addLine()
+                .addData("Motors", "left (%.2f), right (%.2f)", leftDriveTarget, rightDriveTarget)
+                .addData("Right Target", rightDriveTarget)
+                .addData("Left Target", leftDriveTarget);
+        telemetry.update();
+        if(Math.abs(rightDriveTarget)<20 || Math.abs(leftDriveTarget)<20){
+            ContinueToDrive=false;
+        }
+        while (MotorLeftFront.isBusy()&& MotorRightFront.isBusy()&& ContinueToDrive) {
+            leftDriveTarget=EncounterTicks - MotorLeftFront.getCurrentPosition();
+            rightDriveTarget=EncounterTicks - MotorRightFront.getCurrentPosition();
+            String Left = Integer.toString(leftDriveTarget);
+            String Right = Integer.toString(rightDriveTarget);
+            telemetry.addLine()
+                    .addData("Running Straight", EncounterTicks)
+                    //.addData("Running Straight", "number (%.2f)",EncounterTicks)
+                    .addData("Right Target", rightDriveTarget)
+                    .addData("Left Target", leftDriveTarget);
+            //telemetry.addData("I am Runnng","Completed");
+            //telemetry.update();
+            //telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftDriveTarget, rightDriveTarget);
+            telemetry.addData("Motors", Left +","+ Right);
+            telemetry.addData("Continue?:", ContinueToDrive);
+            telemetry.addData("Left Busy?:", MotorLeftFront.isBusy());
+            telemetry.addData("Right Busy?:", MotorRightFront.isBusy());
+            //telemetry.addData("Moving");
+            //telemetry.addData("Status", "Distance: " + EncounterTicks);
+            telemetry.update();
+            if(Math.abs(rightDriveTarget)<20 || Math.abs(leftDriveTarget)<20){
+                ContinueToDrive=false;
+            }
+
+            //}
+
+//End of StraightMove Routine
+        }}
+    public void ArmZMove(double Power, double Distance, String Direction, DcMotor ArmZ) {
+        ArmZ.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        ArmZ.setTargetPosition(0);
+        ArmZ.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        int ArmTarget = 0;
+        Distance=Distance*700;
+        Distance=Math.round(Distance);
+        int EncounterTicks = 0;
+        EncounterTicks=(int)Distance;
+        Boolean ContinueToDrive=true;
+        if(Direction == "Up"){
+            ArmZ.setPower(-Power);
+            ArmZ.setTargetPosition(EncounterTicks);
+            sleep(1000);
+        }
+
+        if(Direction == "Down"){
+            ArmZ.setPower(Power);
+            ArmZ.setTargetPosition(-EncounterTicks);
+            sleep(1000);
+        }
+    }
+    //ArmZ.setTargetPosition(EncounterTicks);
+//  /  telemetry.addLine("Straight Moving");
+//    telemetry.update();
+//    ArmTarget=EncounterTicks - ArmZ.getCurrentPosition();
+//    //Boolean ContinueToDrive = true;
+//    telemetry.addLine()
+//    .addData("Running ArmZMove", "number (%.2f)",EncounterTicks );
+//    telemetry.addLine()
+//    .addData("ArmZ Target", ArmTarget);
+//    telemetry.update();
+//    if(Math.abs(ArmTarget)<20){
+//    ContinueToDrive=false;
+//    }
+//    while (ArmZ.isBusy()&& ContinueToDrive) {
+//        ArmTarget=EncounterTicks - ArmZ.getCurrentPosition();
+//        if(Math.abs(ArmTarget)<20 ){
+//        ContinueToDrive=false;
+//    }
+//}}
+    public void RocketLaunch (String Direction, Servo LeftGrabber, Servo RightGrabber){
+        if(Direction =="Open"){
+            LeftGrabber.setPosition(.5);
+            RightGrabber.setPosition(.5);
+            telemetry.addLine("Open the Rocket Launcher");
+            telemetry.update();
+
+            sleep(600);
+            //Thread.sleep(500);
+        }
+        if(Direction=="Close"){
+            LeftGrabber.setPosition(0);
+            RightGrabber.setPosition(1);
+            telemetry.addLine("Close the Rocket Launcher");
+            telemetry.update();
+            sleep(600);
+            //Thread.sleep(500);
+        }
+    }
+    public void TurnMove(double Power, double Distance, String Direction, DcMotor MotorLeftFront, DcMotor MotorLeftRear, DcMotor MotorRightFront, DcMotor MotorRightRear  ){
+        MotorLeftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        MotorLeftRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        MotorRightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        MotorRightRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        //Set Target Position
+        MotorLeftFront.setTargetPosition(0);
+        MotorLeftRear.setTargetPosition(0);
+        MotorRightFront.setTargetPosition(0);
+        MotorRightRear.setTargetPosition(0);
+
+
+        //Set the Mode to Run to Position
+        MotorLeftFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        MotorLeftRear.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        MotorRightFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        MotorRightRear.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        // Calculate the Number of Encoder Ticks to send to each Motor
+        //Convert Distance (Rotations) to Distance (Encounter Ticks)
+        // The value of 753.2 is based on spec sheet to move one rotation
+        Distance=Distance*753.2;
+        // Round the calculated value from decimal to whole number
+        Distance=Math.round(Distance);
+        // Cast the whole number to an Integer
+        int EncounterTicks = (int)Distance;
+        int leftDriveTarget = 0;
+        int rightDriveTarget = 0;
+        //Set the Power and  Distance for each motor to match
+
+        if(Direction == "Left"){
+            MotorLeftFront.setPower(-Power);
+            MotorLeftFront.setTargetPosition(-EncounterTicks);
+            MotorLeftRear.setPower(-Power);
+            MotorLeftRear.setTargetPosition(-EncounterTicks);
+            MotorRightFront.setPower(Power);
+            MotorRightFront.setTargetPosition(EncounterTicks);
+            MotorRightRear.setPower(Power);
+            MotorRightRear.setTargetPosition(EncounterTicks);
+        }
+        if (Direction == "Right"){
+            MotorLeftFront.setPower(Power);
+            MotorLeftFront.setTargetPosition(EncounterTicks);
+            MotorLeftRear.setPower(Power);
+            MotorLeftRear.setTargetPosition(EncounterTicks);
+            MotorRightFront.setPower(-Power);
+            MotorRightFront.setTargetPosition(-EncounterTicks);
+            MotorRightRear.setPower(-Power);
+            MotorRightRear.setTargetPosition(-EncounterTicks);
+        }
+        telemetry.addLine("Straight Moving");
+        telemetry.update();
+        leftDriveTarget=EncounterTicks - MotorLeftFront.getCurrentPosition();
+        rightDriveTarget=EncounterTicks - MotorRightFront.getCurrentPosition();
+        Boolean ContinueToDrive = true;
+        telemetry.addLine()
+                .addData("Running Strafe", "number (%.2f)",EncounterTicks );
+        telemetry.addLine()
+                .addData("Motors", "left (%.2f), right (%.2f)", leftDriveTarget, rightDriveTarget)
+                .addData("Right Target", rightDriveTarget)
+                .addData("Left Target", leftDriveTarget);
+        telemetry.update();
+        if(Math.abs(rightDriveTarget)<20 || Math.abs(leftDriveTarget)<20){
+            ContinueToDrive=false;
+        }
+        while (MotorLeftFront.isBusy()&& MotorRightFront.isBusy()&& ContinueToDrive) {
+            leftDriveTarget=EncounterTicks - MotorLeftFront.getCurrentPosition();
+            rightDriveTarget=EncounterTicks - MotorRightFront.getCurrentPosition();
+            String Left = Integer.toString(leftDriveTarget);
+            String Right = Integer.toString(rightDriveTarget);
+            telemetry.addLine()
+                    .addData("Running Straight", EncounterTicks)
+                    //.addData("Running Straight", "number (%.2f)",EncounterTicks)
+                    .addData("Right Target", rightDriveTarget)
+                    .addData("Left Target", leftDriveTarget);
+            //telemetry.addData("I am Runnng","Completed");
+            //telemetry.update();
+            //telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftDriveTarget, rightDriveTarget);
+            telemetry.addData("Motors", Left +","+ Right);
+            telemetry.addData("Continue?:", ContinueToDrive);
+            telemetry.addData("Left Busy?:", MotorLeftFront.isBusy());
+            telemetry.addData("Right Busy?:", MotorRightFront.isBusy());
+            //telemetry.addData("Moving");
+            //telemetry.addData("Status", "Distance: " + EncounterTicks);
+            telemetry.update();
+            if(Math.abs(rightDriveTarget)<20 || Math.abs(leftDriveTarget)<20){
+                ContinueToDrive=false;
+            }
+
+            //}
+
+//End of StraightMove Routine
+        }}
+    public void Move45(double Power, double Distance, String Direction, DcMotor MotorLeftFront, DcMotor MotorLeftRear, DcMotor MotorRightFront, DcMotor MotorRightRear  ){
+        MotorLeftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        MotorLeftRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        MotorRightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        MotorRightRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        //Set Target Position
+        MotorLeftFront.setTargetPosition(0);
+        MotorLeftRear.setTargetPosition(0);
+        MotorRightFront.setTargetPosition(0);
+        MotorRightRear.setTargetPosition(0);
+
+
+        //Set the Mode to Run to Position
+        MotorLeftFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        MotorLeftRear.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        MotorRightFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        MotorRightRear.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        // Calculate the Number of Encoder Ticks to send to each Motor
+        //Convert Distance (Rotations) to Distance (Encounter Ticks)
+        // The value of 753.2 is based on spec sheet to move one rotation
+        Distance=Distance*753.2;
+        // Round the calculated value from decimal to whole number
+        Distance=Math.round(Distance);
+        // Cast the whole number to an Integer
+        int EncounterTicks = (int)Distance;
+        int leftDriveTarget = 0;
+        int rightDriveTarget = 0;
+        //Set the Power and  Distance for each motor to match
+
+        if(Direction == "Left"){
+            //MotorLeftFront.setPower(0.0);
+            //MotorLeftFront.setTargetPosition(0);
+            MotorLeftRear.setPower(Power);
+            MotorLeftRear.setTargetPosition(EncounterTicks);
+            MotorRightFront.setPower(Power);
+            MotorRightFront.setTargetPosition(EncounterTicks);
+            //MotorRightRear.setPower(0.0);
+            //MotorRightRear.setTargetPosition(0);
+        }
+        if (Direction == "Right"){
+            MotorLeftFront.setPower(Power);
+            MotorLeftFront.setTargetPosition(EncounterTicks);
+            //MotorLeftRear.setPower(0.0);
+            //MotorLeftRear.setTargetPosition(0);
+            //MotorRightFront.setPower(0.0);
+            //MotorRightFront.setTargetPosition(0);
+            MotorRightRear.setPower(Power);
+            MotorRightRear.setTargetPosition(EncounterTicks);
+        }
+        telemetry.addLine("45 Degree Moving");
+        telemetry.update();
+        if (Direction == "Left"){
+            leftDriveTarget=EncounterTicks - MotorLeftRear.getCurrentPosition();
+            rightDriveTarget=EncounterTicks - MotorRightFront.getCurrentPosition();
+        }
+        if (Direction == "Right"){
+            leftDriveTarget=EncounterTicks - MotorLeftFront.getCurrentPosition();
+            rightDriveTarget=EncounterTicks - MotorRightRear.getCurrentPosition();
+        }
+        //leftDriveTarget=EncounterTicks - MotorLeftFront.getCurrentPosition();
+        //rightDriveTarget=EncounterTicks - MotorRightFront.getCurrentPosition();
+        Boolean ContinueToDrive = true;
+        telemetry.addLine()
+                .addData("Running Strafe", "number (%.2f)",EncounterTicks );
+        telemetry.addLine()
+                .addData("Motors", "left (%.2f), right (%.2f)", leftDriveTarget, rightDriveTarget)
+                .addData("Right Target", rightDriveTarget)
+                .addData("Left Target", leftDriveTarget);
+        telemetry.update();
+        if(Math.abs(rightDriveTarget)<20 || Math.abs(leftDriveTarget)<20){
+            ContinueToDrive=false;
+        }
+        if (Direction == "Left"){
+            while (MotorLeftRear.isBusy()&& MotorRightFront.isBusy()&& ContinueToDrive) {
+                leftDriveTarget=EncounterTicks - MotorLeftRear.getCurrentPosition();
+                rightDriveTarget=EncounterTicks - MotorRightFront.getCurrentPosition();
+            }
+        }
+
+        if (Direction == "Right"){
+            while (MotorLeftFront.isBusy()&& MotorRightRear.isBusy()&& ContinueToDrive) {
+                leftDriveTarget=EncounterTicks - MotorLeftFront.getCurrentPosition();
+                rightDriveTarget=EncounterTicks - MotorRightRear.getCurrentPosition();
+            }
+        }
+        String Left = Integer.toString(leftDriveTarget);
+        String Right = Integer.toString(rightDriveTarget);
+        telemetry.addLine()
+                .addData("Running Straight", EncounterTicks)
+                //.addData("Running Straight", "number (%.2f)",EncounterTicks)
+                .addData("Right Target", rightDriveTarget)
+                .addData("Left Target", leftDriveTarget);
+        //telemetry.addData("I am Runnng","Completed");
+        //telemetry.update();
+        //telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftDriveTarget, rightDriveTarget);
+        telemetry.addData("Motors", Left +","+ Right);
+        telemetry.addData("Continue?:", ContinueToDrive);
+        telemetry.addData("Left Busy?:", MotorLeftFront.isBusy());
+        telemetry.addData("Right Busy?:", MotorRightFront.isBusy());
+        //telemetry.addData("Moving");
+        //telemetry.addData("Status", "Distance: " + EncounterTicks);
+        telemetry.update();
+        if(Math.abs(rightDriveTarget)<20 || Math.abs(leftDriveTarget)<20){
+            ContinueToDrive=false;
+        }
+
+        //}
+
+//End of 45 Degree Move Routine
+    }}

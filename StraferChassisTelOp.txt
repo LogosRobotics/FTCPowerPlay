@@ -1,0 +1,165 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.Servo;
+import java.lang.reflect.Type;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
+import java.lang.Math;
+
+@TeleOp(name="Strafer Chassis", group="")
+
+public class StraferChassisTeleOP extends LinearOpMode{
+
+    // todo: write your code here
+    
+    DcMotor MotorLeftFront = null;
+    DcMotor MotorLeftRear = null;
+    DcMotor MotorRightFront = null;
+    DcMotor MotorRightRear = null;
+    DcMotor ArmZ = null;
+    DcMotor ArmXY = null;
+    DcMotor Ducknado = null;
+    private Servo LeftGrabber = null;
+    private Servo RightGrabber = null;
+    //float speed = 0;
+    float turn = 0;
+    //float strafe = 0;
+    double MLF = 0;
+    double MLR = 0;
+    double MRF = 0;
+    double MRR = 0;
+    double motorPowerValue = 0.5;
+    double x =0;
+    double y =0;
+    double theta =0;
+    double power =0;
+    double sin =0;
+    double cos = 0;
+    double max = 0;
+    
+        @Override
+    public void runOpMode() {
+        
+        telemetry.addData("Status", "Initialized");
+        telemetry.addData("Motor Power", "Power (%.2f)",motorPowerValue);
+        telemetry.update();
+    // Initialize the hardware variables. Note that the strings used here as parameters
+    // to 'get' must correspond to the names assigned during the robot configuration
+    // step (using the FTC Robot Controller app on the phone).
+    
+    MotorRightFront  = hardwareMap.get(DcMotor.class, "MotorRightFront");
+    MotorRightRear  = hardwareMap.get(DcMotor.class, "MotorRightRear");
+    MotorLeftFront  = hardwareMap.get(DcMotor.class, "MotorLeftFront");
+    MotorLeftRear  = hardwareMap.get(DcMotor.class, "MotorLeftRear");
+    ArmZ = hardwareMap.get(DcMotor.class,"ArmZ");
+    ArmXY = hardwareMap.get(DcMotor.class,"ArmXY");
+    Ducknado=hardwareMap.get(DcMotor.class,"Ducknado");
+    LeftGrabber =hardwareMap.servo.get("LeftGrabber");
+    RightGrabber =hardwareMap.servo.get("RightGrabber");
+    
+    MotorRightFront.setDirection(DcMotor.Direction.FORWARD);
+    MotorRightRear.setDirection(DcMotor.Direction.FORWARD);
+    MotorLeftFront.setDirection(DcMotor.Direction.REVERSE);
+    MotorLeftRear.setDirection(DcMotor.Direction.REVERSE);
+    ArmZ.setDirection(DcMotor.Direction.FORWARD);
+    ArmXY.setDirection(DcMotor.Direction.FORWARD);
+    Ducknado.setDirection(DcMotor.Direction.REVERSE);
+    
+    waitForStart();
+    telemetry.addData("Status", "Program Started");
+    telemetry.addData("Motor Power", "Power (%.2f)",motorPowerValue);
+    telemetry.update();
+    if (opModeIsActive()) {
+        while (opModeIsActive()) {
+            
+            x=gamepad1.left_stick_x;
+            y=-gamepad1.left_stick_y;
+            turn=gamepad1.right_stick_x;
+            
+            theta=Math.atan2(y,x);
+            power=Math.hypot(x,y);
+            
+            //METHOD 2
+            // input: theta, power, and turn
+            
+            sin = Math.sin(theta-Math.PI/4);
+            cos = Math.cos(theta-Math.PI/4);
+            max = Math.max(Math.abs(sin),Math.abs(cos));
+            
+            MLF=(power*cos/max+turn);
+            MRF=(power*sin/max-turn);
+            MLR=(power*sin/max+turn);
+            MRR=(power*cos/max-turn);
+            
+            if((power+Math.abs(turn))>1){
+                //
+                    //Replaced power+turn to power++Math.abs(turn) to normalize
+                MLF= MLF/(power+Math.abs(turn));
+                MRF= MRF/(power+Math.abs(turn));
+                MLR= MLR/(power+Math.abs(turn));
+                MRR= MRR/(power+Math.abs(turn));
+                //}
+                //else {
+                //MLF=0;
+                //MRF=0;
+                //MLR=0;
+                //MRR=0;
+                //}
+                
+            }
+            MotorRightFront.setPower(MRF*motorPowerValue);
+            MotorLeftFront.setPower(MLF*motorPowerValue);
+            MotorRightRear.setPower(MRR*motorPowerValue);
+            MotorLeftRear.setPower(MLR*motorPowerValue);
+            
+            if (gamepad1.right_bumper && motorPowerValue<1) {motorPowerValue=motorPowerValue+0.0010;}
+            if (gamepad1.left_bumper && motorPowerValue>.1) {motorPowerValue=motorPowerValue-0.0010;}
+            if (gamepad1.right_trigger>0.5) {motorPowerValue=motorPowerValue=0.75;} 
+            if (gamepad1.left_trigger>0.5) {motorPowerValue=motorPowerValue=0.25;}
+            
+            if (gamepad1.x){MotorRightFront.setPower(1.0);}
+            if (gamepad1.y){MotorLeftFront.setPower(1.0);}
+            if (gamepad1.a){MotorRightRear.setPower(1.0);}
+            if (gamepad1.b){MotorLeftRear.setPower(1.0);}
+            
+            //Game Controller 2 For arm Control
+            if (gamepad2.x){LeftGrabber.setPosition(.5);} //previously 90
+            if (gamepad2.x){RightGrabber.setPosition(.5);}
+            if (gamepad2.b){LeftGrabber.setPosition(0);}
+            if (gamepad2.b){RightGrabber.setPosition(1);}
+            if (gamepad2.y){LeftGrabber.setPosition(1);}
+            if (gamepad2.y){RightGrabber.setPosition(0);}
+            if (gamepad2.left_trigger>0){Ducknado.setPower(0.6);}
+            if (gamepad2.right_trigger>0){Ducknado.setPower(-0.6);}
+            ArmZ.setPower(gamepad2.left_stick_y*-0.5);
+            ArmXY.setPower(gamepad2.right_stick_x*-1);
+            ArmXY.setPower(gamepad2.left_stick_x*-1);
+            ArmXY.setPower(0.0);
+            ArmZ.setPower(0.0);
+            Ducknado.setPower(0.0);
+            
+            telemetry.addData("Status", "Driver Control");
+            telemetry.addData("Motor Power", "Power (%.2f)",power);
+            telemetry.addData("LeftGrabber Position", "Position (%.2f)", LeftGrabber.getPosition());
+            telemetry.addData("RigthGrabber Postion", "Position (%.2f)", RightGrabber.getPosition());
+            telemetry.addData("PowerMultipler", "Value (%.2f)",motorPowerValue);
+            //telemetry.addData("GamePad Left L/R", "X (%.2f)",x);
+            //telemetry.addData("GamePad Left F/B", "Y (%.2f)",y);
+            telemetry.addData("Power", "Left Front (%.2f)",MLF);
+            telemetry.addData("Power", "Left Rear (%.2f)",MLR);
+            telemetry.addData("Power", "Right Front (%.2f)",MRF);
+            telemetry.addData("Power", "Right Rear (%.2f)",MRR);
+            telemetry.update();
+        // End of While Statement
+        }
+        //End of omModeIsActive Loop
+        }
+    //End of runOpMode
+    } 
+// End of StraferChassisTeleOp
+}

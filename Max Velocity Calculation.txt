@@ -1,0 +1,5 @@
+MaxVelocityTuner
+29-Sept-2022
+Telemetry
+Max Velocity: 60.5174633221023
+Voltage Compensated kF: 12.7419729865033
